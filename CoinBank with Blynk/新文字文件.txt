@@ -7,33 +7,37 @@
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 
+// Your WiFi credentials.
+// Set password to "" for open networks.
 char ssid[] = "SC_iPhone";
 char pass[] = "asdfghjkl";
 
 BlynkTimer timer;
+int coinCount = 0;
 
 void sendData() {
   if (Serial.available() > 0) {
-    Blynk.virtualWrite(V2, coinCount);
+    String receivedString = Serial.readStringUntil('\n');  // 讀取直到換行符的整個字符串
+    coinCount = receivedString.toInt();  // 將接收到的字符串轉換為整數
+    Serial.println(coinCount);
+
+    Blynk.virtualWrite(V1, coinCount);
   }
 }
 
 void setup() {
+  // Debug console
   Serial.begin(115200);
-  UnoSerial.begin(115200);      // Initialize software serial port to communicate with UNO
+
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
-  // while (Blynk.connect() == false) {
-  //   // Wait until connected
-  // }
-  timer.setInterval(1000L, sendData);  // Set a timer to send data every second
+  // You can also specify server:
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, "blynk.cloud", 80);
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, IPAddress(192,168,1,100), 8080);
+
+  timer.setInterval(1000L, sendData);  // 設置定時器，每秒鐘發送數據
 }
 
 void loop() {
   Blynk.run();
   timer.run();
-  
-  if(Serial.available()>0) {
-    bool recivedBool = Serial.read();
-    Serial.println(recivedBool);
-  }
 }
